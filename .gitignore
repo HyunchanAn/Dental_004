@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# Data (Large raw datasets)
+data/raw/
+data/processed/
+
+# ID/Config
+.DS_Store
+.vscode/
+.idea/
+
+# Large binaries (tracked by LFS anyway, but good to keep structure)
+# results/ (Optional: results are usually kept if they are small, but let's keep important ones)
+results/*.png
+!results/inference_comparison.png
+!results/full_panorama_result.png

@@ -1,0 +1,32 @@
+project_name: Pano_clear
+device: mps
+
+model:
+  upscale: 2
+  in_chans: 1
+  embed_dim: 60
+  depths: [6, 6, 6, 6]
+  num_heads: [6, 6, 6, 6]
+  window_size: 8
+  img_range: 1.0
+
+dataset:
+  root_dirs: 
+    - "data/raw/Tufts Dental Database"
+    - "data/raw/DENTEX_data"
+  patch_size: 128
+  noise_level: 0.05
+  batch_size: 16
+  num_workers: 4
+
+train:
+  learning_rate: 0.0002
+  epochs: 100
+  save_interval: 10
+  log_interval: 50
+  mixed_precision: true
+  gradient_checkpointing: true
+
+path:
+  checkpoints: "checkpoints"
+  results: "results"
