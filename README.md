@@ -15,6 +15,29 @@
 ## 설치 및 실행
 상세한 프로젝트 기획 및 실행 방법은 PROJECT_PLAN.md 파일을 참고하시기 바랍니다.
 
+## 🚀 데모 및 실행 (Streamlit)
+본 프로젝트는 **Streamlit**을 이용한 데모 앱을 제공합니다.
+웹 브라우저 상에서 이미지를 업로드하고 Denoising & Super-Resolution 결과를 바로 확인할 수 있습니다.
+
+```bash
+# 의존성 설치
+pip install -r requirements.txt
+
+# 로컬 데모 실행
+streamlit run app.py
+```
+*(Streamlit Cloud 환경의 경우 `checkpoints/pano_swinir_epoch_100.pth` 모델이 함께 업로드되어 있어야 작동합니다.)*
+
+## 📊 결과물 예시 (Results)
+
+### 1. 타일링 기반 전체 파노라마 복원
+![전체 파노라마 결과](docs/full_panorama_result.png)
+*저해상도 환경 시뮬레이션 및 복원 결과*
+
+### 2. 세부 영역 비교 (Inference Comparison)
+![추론 결과 비교](docs/inference_comparison.png)
+*부분 크롭을 통한 노이즈 제거 및 경계선(치아, 뼈) 복원 차이 확인*
+
 ## 데이터셋 정보 (External Datasets)
 학습 및 평가에 활용할 데이터셋 정보입니다.
 
