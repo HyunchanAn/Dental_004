@@ -56,8 +56,19 @@ class PanoTiler:
             y_up, x_up = y * self.upscale, x * self.upscale
             t_size_up = self.tile_size * self.upscale
             
-            output[:, y_up:y_up+t_size_up, x_up:x_up+t_size_up] += tiles[i] * mask
-            weights[:, y_up:y_up+t_size_up, x_up:x_up+t_size_up] += mask
+            # 타일이 이미지 경계를 벗어날 경우를 대비한 슬라이싱 계산
+            y_end = min(y_up + t_size_up, h_large)
+            x_end = min(x_up + t_size_up, w_large)
+            
+            tile_h = y_end - y_up
+            tile_w = x_end - x_up
+            
+            # 타일과 마스크를 경계 크기에 맞게 자름 (Clips if necessary)
+            curr_tile = tiles[i][:, :tile_h, :tile_w]
+            curr_mask = mask[:tile_h, :tile_w]
+            
+            output[:, y_up:y_end, x_up:x_end] += curr_tile * curr_mask
+            weights[:, y_up:y_end, x_up:x_end] += curr_mask
 
         return output / (weights + 1e-8)
 
@@ -82,13 +93,22 @@ class PanoTiler:
     def process_large_image(self, model, img_tensor, device):
         """
         모델을 사용하여 대용량 이미지 전체를 타일링 방식으로 처리.
+        이미지가 타일 크기보다 작을 경우 패딩 처리함.
         """
         model.eval()
+        c, h, w = img_tensor.shape
+        
+        # 이미지가 타일 크기보다 작으면 패딩 추가
+        pad_h = max(0, self.tile_size - h)
+        pad_w = max(0, self.tile_size - w)
+        
+        if pad_h > 0 or pad_w > 0:
+            img_tensor = F.pad(img_tensor, (0, pad_w, 0, pad_h), mode='reflect')
+        
         with torch.no_grad():
             tiles, coords = self.tile_image(img_tensor)
             processed_tiles = []
             
-            # 메모리 관리를 위해 타일 하나씩 처리
             for tile in tiles:
                 tile = tile.unsqueeze(0).to(device)
                 out = model(tile)
@@ -96,10 +116,15 @@ class PanoTiler:
             
             processed_tiles = torch.stack(processed_tiles)
             
-            c, h, w = img_tensor.shape
-            target_shape = (c, h * self.upscale, w * self.upscale)
+            # 패딩된 상태의 대상 형상
+            new_h, new_w = img_tensor.shape[1], img_tensor.shape[2]
+            target_shape_padded = (c, new_h * self.upscale, new_w * self.upscale)
             
-            return self.merge_tiles(processed_tiles, coords, target_shape)
+            result = self.merge_tiles(processed_tiles, coords, target_shape_padded)
+            
+            # 패딩 제거 후 원래 크기의 배수로 크롭
+            final_h, final_w = h * self.upscale, w * self.upscale
+            return result[:, :final_h, :final_w]
 
 if __name__ == "__main__":
     # 타일링 테스트
