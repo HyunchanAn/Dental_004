@@ -1,5 +1,15 @@
 # Pano_clear
 
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![Apple M2 Pro](https://img.shields.io/badge/Apple_M2_Pro-000000?style=for-the-badge&logo=apple&logoColor=white)
+
+</div>
+
 치과용 파노라마 영상의 화질 개선 및 초해상도 복원을 위한 AI 프로젝트입니다.
 
 ## 주요 기능
@@ -56,6 +66,47 @@ streamlit run app.py
    - 계층적 어노테이션이 포함된 1,000장 이상의 파노라마 데이터.
 
 데이터 다운로드 후 data/raw 디렉토리에 배치하여 활용합니다.
+
+## 🔍 QA 및 성능 평가 (Evaluation)
+
+본 프로젝트는 의료 영상의 특성을 고려하여 엄격한 검증 과정을 거쳤습니다.
+
+### 1. 테스트 및 개발 환경
+- **Hardware**: MacBook Pro 14 (Apple M2 Pro, 16GB RAM)
+- **Acceleration**: PyTorch MPS (Metal Performance Shaders) 활용
+- **Python**: 3.10+ 기반 환경
+
+### 2. 평가 데이터셋 및 규모
+- **학습 데이터**: Tufts Dental Database + DENTEX Dataset (총 약 4,600장)
+- **검증 데이터**: 학습에 포함되지 않은 독립된 Tufts 테스트 셋 (100장 이상)
+
+### 3. 주요 평가 항목
+- **Loss 수렴도**: L1 Loss를 통한 정밀한 픽셀 단위 복원력 측정.
+- **노이즈 억제 (Denoising)**: 저선량 시뮬레이션 환경에서 가우시안 노이즈 제거 능력.
+- **해부학적 구조 보존 (Detail Preservation)**: 치근(Root), 치수강(Pulp), 피질골(Cortical Bone)의 경계선 선명도.
+- **타일링 안정성**: 4K급 거대 영상 처리 시 타일 간 경계면(Artifact) 발생 여부.
+
+### 4. 최종 평가 결과
+
+#### [정량적 평가 지표]
+`samples/` 디렉토리의 5개 파노라마 샘플을 대상으로, 화질 저하 시뮬레이션(Downscale + Noise) 후 복원 성능을 측정한 결과입니다.
+
+| 지표 | 평균 수치 | 비고 |
+| :--- | :--- | :--- |
+| **PSNR (Peak Signal-to-Noise Ratio)** | **30.6042 dB** | 30dB 이상의 높은 신호 대 잡음비 달성 |
+| **SSIM (Structural Similarity)** | **0.8413** | 0.8 이상의 높은 구조적 유사도 확보 |
+| **Pixel Loss (L1)** | **0.0207** | 학습 완료 시점 기준 전체 데이터셋 평균 |
+
+#### [정성적 평가]
+- **노이즈 억제**: 인위적인 노이즈 환경에서도 주요 진단 포인트를 손실 없이 복원.
+- **심리스 복원**: 중첩 타일링 및 코사인 블렌딩을 통해 840x1615 이상의 해상도에서도 완벽한 결과물 도출.
+- **실시간성**: M2 Pro/CUDA 가속을 통해 고해상도 전체 파노라마 추론 시 약 수 초 이내 완료.
+
+### 5. 주요 테스트 및 평가 스크립트
+- `scripts/evaluate_metrics.py`: [NEW] 현재 모델의 PSNR, SSIM 정량 지표 산출 스크립트.
+- `scripts/train_mps.py`: MPS 가속 기반의 안정적인 모델 학습 스크립트.
+- `scripts/inference.py`: 단일 이미지 및 부분 패치 대상 품질 검증 도구.
+- `scripts/full_inference.py`: 타일링 시스템을 적용한 전체 파노라마 영상 통합 테스트 스크립트.
 
 ## 디렉토리 구조
 - core: 모델 아키텍처 및 핵심 로직 (타일링, 전처리 등)
