@@ -1,14 +1,10 @@
 # Pano_clear
 
-<div align="center">
+[![Status](https://img.shields.io/badge/Status-v1.0_Release-4c1)](https://github.com/HyunchanAn/Pano_clear)
+[![Python](https://img.shields.io/badge/Python-3.10+-007ec6)](https://github.com/HyunchanAn/Pano_clear)
+[![Model](https://img.shields.io/badge/Model-SwinIR--Lightweight-d00)](https://github.com/HyunchanAn/Pano_clear)
+[![UI](https://img.shields.io/badge/UI-Streamlit-f39c12)](https://github.com/HyunchanAn/Pano_clear)
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
-![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
-![Apple M2 Pro](https://img.shields.io/badge/Apple_M2_Pro-000000?style=for-the-badge&logo=apple&logoColor=white)
-
-</div>
 
 치과용 파노라마 영상의 화질 개선 및 초해상도 복원을 위한 AI 프로젝트입니다.
 
