@@ -4,7 +4,6 @@ import torch
 import cv2
 import numpy as np
 from core.model import SwinIRLight
-from core.preprocess import PanoPreprocessor
 from core.tiling import PanoTiler
 
 def upscale_sample_image(input_path, output_path):
@@ -16,8 +15,6 @@ def upscale_sample_image(input_path, output_path):
     device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    # 2. Initialize modules
-    preprocessor = PanoPreprocessor()
     # Force 2x or 4x scale if needed, but current model is trained for upscale in config
     upscale = config['model']['upscale']
     tiler = PanoTiler(tile_size=config['dataset']['patch_size'], overlap=32, upscale=upscale)

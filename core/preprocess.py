@@ -1,8 +1,7 @@
-import os
 import numpy as np
 import pydicom
 import cv2
-from typing import Optional, Union, Tuple
+from typing import Tuple
 
 class PanoPreprocessor:
     """

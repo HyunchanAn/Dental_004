@@ -1,5 +1,20 @@
 # Pano_clear 개발일지 
 
+##### 2026-05-18 (7일차) #####
+
+### CI/CD 파이프라인 및 테스트 자동화 구축 완료
+
+1. GitHub Actions 기반의 CI(지속적 통합) 파이프라인 구축 완료 (.github/workflows/ci.yml 생성). main 브랜치 push 및 PR 시 ruff 린팅 및 pytest 유닛 테스트 자동 구동 설정.
+2. 4대 핵심 모듈에 대한 견고한 유닛 테스트 세트 구축 (tests/ 폴더 신설).
+   - tests/test_model.py: SwinIRLight 모델의 더미 텐서 추론 및 출력 형태의 구조 정합성 검증.
+   - tests/test_preprocess.py: 16비트 정규화 및 CLAHE 대비 개선 모듈 정합성 검증.
+   - tests/test_tiling.py: 중첩 타일링 분할 및 코사인 마스크 병합 로직 검증.
+   - tests/test_dataset.py: 임시 더미 파일시스템 모킹을 통한 Tufts 및 DENTEX 통합 데이터셋 로더 검증.
+3. 런타임 오류 QA 및 리팩토링 수행:
+   - tests/test_tiling.py 구동 과정 중, 타일 크기보다 훨씬 작은 소형 이미지 입력 시 PyTorch의 F.pad(reflect 모드)에서 런타임 에러가 발생하는 버그 포착.
+   - core/tiling.py의 process_large_image 내 패딩 모드를 reflect에서 replicate 모드로 개선하여, 어떤 형상의 이미지 입력에서도 절대 오류가 나지 않도록 물리적 안전성(OOB) 대폭 향상 완료.
+4. README.md 최상단에 GitHub Actions 빌드 성공 여부를 나타내는 Status 배지 연동 완료.
+
 ##### 2026-02-26 (4일차) #####
 
 ### Streamlit Cloud 배포 준비
