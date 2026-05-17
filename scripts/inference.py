@@ -1,8 +1,6 @@
 import os
 import yaml
 import torch
-import cv2
-import numpy as np
 import matplotlib.pyplot as plt
 from core.model import SwinIRLight
 from core.dataset import PanoDataset

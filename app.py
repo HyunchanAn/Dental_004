@@ -8,7 +8,6 @@ import numpy as np
 from core.model import SwinIRLight
 from core.preprocess import PanoPreprocessor
 from core.tiling import PanoTiler
-import matplotlib.pyplot as plt
 
 # 샤프닝 필터 함수 정의
 def apply_sharpening(image, amount=1.0):

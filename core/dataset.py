@@ -66,7 +66,7 @@ class PanoDataset(Dataset):
         img_path = self.image_paths[idx]
         try:
             img_hr = self.preprocessor.preprocess_pipeline(img_path)
-        except Exception as e:
+        except Exception:
             # 로딩 실패 시 다른 인덱스 재시도
             return self.__getitem__(np.random.randint(0, len(self.image_paths)))
         

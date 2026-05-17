@@ -1,7 +1,5 @@
 import torch
 import torch.nn.functional as F
-import numpy as np
-import cv2
 
 class PanoTiler:
     """
@@ -33,8 +31,10 @@ class PanoTiler:
                 tiles.append(tile)
                 coords.append((y_start, x_start))
                 
-                if x_start + self.tile_size >= w: break
-            if y_start + self.tile_size >= h: break
+                if x_start + self.tile_size >= w:
+                    break
+            if y_start + self.tile_size >= h:
+                break
 
         return torch.stack(tiles), coords
 
@@ -103,7 +103,8 @@ class PanoTiler:
         pad_w = max(0, self.tile_size - w)
         
         if pad_h > 0 or pad_w > 0:
-            img_tensor = F.pad(img_tensor, (0, pad_w, 0, pad_h), mode='reflect')
+            # reflect 패딩은 패딩 크기가 입력 차원 크기보다 작아야 하므로 에러 방지를 위해 replicate 모드를 적용합니다.
+            img_tensor = F.pad(img_tensor, (0, pad_w, 0, pad_h), mode='replicate')
         
         with torch.no_grad():
             tiles, coords = self.tile_image(img_tensor)

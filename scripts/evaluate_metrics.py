@@ -60,7 +60,8 @@ def evaluate_performance():
         img_path = os.path.join(sample_dir, file_name)
         # 이미지 로드 및 그레이스케일 변환 (모델 입력 규격)
         hr_orig = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        if hr_orig is None: continue
+        if hr_orig is None:
+            continue
         
         # 0~1 정규화
         hr_orig = hr_orig.astype(np.float32) / 255.0

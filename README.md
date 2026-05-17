@@ -1,6 +1,7 @@
 # Pano_clear
 
 [![Status](https://img.shields.io/badge/Status-v1.0_Release-4c1)](https://github.com/HyunchanAn/Pano_clear)
+[![CI Pipeline](https://github.com/HyunchanAn/Pano_clear/actions/workflows/ci.yml/badge.svg)](https://github.com/HyunchanAn/Pano_clear/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10+-007ec6)](https://github.com/HyunchanAn/Pano_clear)
 [![Model](https://img.shields.io/badge/Model-SwinIR--Lightweight-d00)](https://github.com/HyunchanAn/Pano_clear)
 [![UI](https://img.shields.io/badge/UI-Streamlit-f39c12)](https://github.com/HyunchanAn/Pano_clear)
