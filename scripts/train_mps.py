@@ -9,15 +9,15 @@ from pano_clear.model import SwinIRLight
 from pano_clear.dataset import PanoDataset
 
 def train():
-    # 1. ?�정 로드
+    # 1. ?ㅼ젙 濡쒕뱶
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    # 2. ?�바?�스 ?�정 (MPS 가??
+    # 2. ?붾컮?댁뒪 ?ㅼ젙 (MPS 媛??
     device = torch.device(config['device'])
-    print(f"?�용 ?�바?�스: {device}")
+    print(f"?ъ슜 ?붾컮?댁뒪: {device}")
 
-    # 3. ?�이?�셋 �?로더 구성
+    # 3. ?곗씠?곗뀑 諛?濡쒕뜑 援ъ꽦
     train_dataset = PanoDataset(
         root_dirs=config['dataset']['root_dirs'],
         patch_size=config['dataset']['patch_size'],
@@ -33,7 +33,7 @@ def train():
         num_workers=config['dataset']['num_workers']
     )
 
-    # 4. 모델 ?�성 �?초기??
+    # 4. 紐⑤뜽 ?앹꽦 諛?珥덇린??
     model = SwinIRLight(
         upscale=config['model']['upscale'],
         in_chans=config['model']['in_chans'],
@@ -43,16 +43,16 @@ def train():
         window_size=config['model']['window_size']
     ).to(device)
 
-    # 5. ?�실 ?�수 �??�티마이?� (L1 Loss ?�용 - ?�명???��????�리)
+    # 5. ?먯떎 ?⑥닔 諛??듯떚留덉씠? (L1 Loss ?ъ슜 - ?좊챸???좎????좊━)
     criterion = nn.L1Loss()
     optimizer = optim.Adam(model.parameters(), lr=config['train']['learning_rate'])
 
-    # 6. 체크?�인??경로 ?�성
+    # 6. 泥댄겕?ъ씤??寃쎈줈 ?앹꽦
     os.makedirs(config['path']['checkpoints'], exist_ok=True)
 
-    # 7. ?�습 루프
+    # 7. ?숈뒿 猷⑦봽
     epochs = config['train']['epochs']
-    print(f"?�습 ?�작: �?{epochs} ?�폭")
+    print(f"?숈뒿 ?쒖옉: 珥?{epochs} ?먰룺")
 
     for epoch in range(1, epochs + 1):
         model.train()
@@ -79,9 +79,9 @@ def train():
                 progress_bar.set_postfix(loss=loss.item())
 
         avg_loss = epoch_loss / len(train_loader)
-        print(f"?�폭 {epoch} ?�균 ?�실: {avg_loss:.6f}")
+        print(f"?먰룺 {epoch} ?됯퇏 ?먯떎: {avg_loss:.6f}")
 
-        # 8. 주기??모델 ?�??
+        # 8. 二쇨린??紐⑤뜽 ???
         if epoch % config['train']['save_interval'] == 0:
             save_path = os.path.join(config['path']['checkpoints'], f"pano_swinir_epoch_{epoch}.pth")
             torch.save({
@@ -90,7 +90,7 @@ def train():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': avg_loss,
             }, save_path)
-            print(f"체크?�인???�???�료: {save_path}")
+            print(f"泥댄겕?ъ씤??????꾨즺: {save_path}")
 
 if __name__ == "__main__":
     train()
