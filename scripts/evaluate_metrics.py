@@ -9,11 +9,11 @@ from skimage.metrics import structural_similarity as ssim
 from tqdm import tqdm
 
 def evaluate_performance():
-    # 1. ?�정 로드
+    # 1. ?ㅼ젙 濡쒕뱶
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    # Windows ?�경?��?�?CPU ?�용 (?��? CUDA/MPS 가?????�동 ?�택)
+    # Windows ?섍꼍?대?濡?CPU ?ъ슜 (?뱀? CUDA/MPS 媛?????먮룞 ?좏깮)
     if torch.cuda.is_available():
         device = torch.device('cuda')
     elif torch.backends.mps.is_available():
@@ -21,9 +21,9 @@ def evaluate_performance():
     else:
         device = torch.device('cpu')
     
-    print(f"?�용 ?�바?�스: {device}")
+    print(f"?쒖슜 ?붾컮?댁뒪: {device}")
 
-    # 2. 모델 로드
+    # 2. 紐⑤뜽 濡쒕뱶
     model = SwinIRLight(
         upscale=config['model']['upscale'],
         in_chans=config['model']['in_chans'],
@@ -35,58 +35,58 @@ def evaluate_performance():
 
     checkpoint_path = os.path.join(config['path']['checkpoints'], 'pano_swinir_epoch_100.pth')
     if not os.path.exists(checkpoint_path):
-        print(f"체크?�인?��? 찾을 ???�습?�다: {checkpoint_path}")
+        print(f"泥댄겕?ъ씤?몃? 李얠쓣 ???놁뒿?덈떎: {checkpoint_path}")
         return
 
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-    print(f"모델 로드 ?�료: {checkpoint_path}")
+    print(f"紐⑤뜽 濡쒕뱶 ?꾨즺: {checkpoint_path}")
 
-    # 3. ?�플 ?�이??로드
+    # 3. ?섑뵆 ?곗씠??濡쒕뱶
     sample_dir = 'samples'
     sample_files = [f for f in os.listdir(sample_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
     
     if not sample_files:
-        print("?��????�플 ?��?지가 ?�습?�다.")
+        print("?됯????섑뵆 ?대?吏媛 ?놁뒿?덈떎.")
         return
 
     psnr_list = []
     ssim_list = []
 
-    print(f"�?{len(sample_files)}개의 ?�플???�???�량???��?�??�작?�니??..")
+    print(f"珥?{len(sample_files)}媛쒖쓽 ?섑뵆??????뺣웾???됯?瑜??쒖옉?⑸땲??..")
 
     for file_name in tqdm(sample_files):
         img_path = os.path.join(sample_dir, file_name)
-        # ?��?지 로드 �?그레?�스케??변??(모델 ?�력 규격)
+        # ?대?吏 濡쒕뱶 諛?洹몃젅?댁뒪耳??蹂??(紐⑤뜽 ?낅젰 洹쒓꺽)
         hr_orig = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         if hr_orig is None:
             continue
         
-        # 0~1 ?�규??
+        # 0~1 ?뺢퇋??
         hr_orig = hr_orig.astype(np.float32) / 255.0
         
-        # SwinIR ?�력?� window_size??배수?�야 ??(Padding)
+        # SwinIR ?낅젰? window_size??諛곗닔?ъ빞 ??(Padding)
         ws = config['model']['window_size']
         h, w = hr_orig.shape
         mod_h = (h // (ws * config['model']['upscale'])) * (ws * config['model']['upscale'])
         mod_w = (w // (ws * config['model']['upscale'])) * (ws * config['model']['upscale'])
         hr_ref = hr_orig[:mod_h, :mod_w]
 
-        # 가?�의 ?�?�상??LR) ?�성
+        # 媛?곸쓽 ??댁긽??LR) ?앹꽦
         lr_w, lr_h = mod_w // config['model']['upscale'], mod_h // config['model']['upscale']
         lr_img = cv2.resize(hr_ref, (lr_w, lr_h), interpolation=cv2.INTER_CUBIC)
         
-        # ?�이�?추�? (?��??�이??
+        # ?몄씠利?異붽? (?쒕??덉씠??
         noise = np.random.normal(0, config['dataset']['noise_level'], lr_img.shape).astype(np.float32)
         lr_img = np.clip(lr_img + noise, 0, 1)
 
-        # 추론
+        # 異붾줎
         lr_tensor = torch.from_numpy(lr_img).float().unsqueeze(0).unsqueeze(0).to(device)
         with torch.no_grad():
             sr_tensor = model(lr_tensor).cpu().squeeze(0).squeeze(0).numpy()
         
-        # 지??계산
+        # 吏??怨꾩궛
         cur_psnr = psnr(hr_ref, sr_tensor, data_range=1.0)
         cur_ssim = ssim(hr_ref, sr_tensor, data_range=1.0)
         
@@ -97,11 +97,11 @@ def evaluate_performance():
     avg_ssim = np.mean(ssim_list)
 
     print("\n" + "="*30)
-    print("최종 ?�량???��? 결과")
+    print("理쒖쥌 ?뺣웾???됯? 寃곌낵")
     print("="*30)
-    print(f"?��? ?�플 ?? {len(psnr_list)}")
-    print(f"?�균 PSNR: {avg_psnr:.4f} dB")
-    print(f"?�균 SSIM: {avg_ssim:.4f}")
+    print(f"?됯? ?섑뵆 ?? {len(psnr_list)}")
+    print(f"?됯퇏 PSNR: {avg_psnr:.4f} dB")
+    print(f"?됯퇏 SSIM: {avg_ssim:.4f}")
     print("="*30)
 
 if __name__ == "__main__":
