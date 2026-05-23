@@ -15,10 +15,24 @@
 - **타임라인(History) 뷰어**: 화질 개선 단계를 아래로 누적하여 보여주어 이전 결과와 직관적으로 비교할 수 있는 UI.
 - **메디컬 샤프닝(Medical Sharpening)**: 치근, 치관, 피질골 등 치과 진단에 필수적인 경계선을 슬라이더를 통해 실시간으로 뚜렷하게 조절하는 후처리 필터 적용.
 - **M2 Pro 환경 최적화**: OOB(Out of Bounds) 방지 패딩과 클리핑 로직이 추가된 고해상도 타일링 시스템으로 16GB RAM 환경에서도 안전한 대용량 처리 지원.
+## 🏛 Architecture Diagram
+```mermaid
+graph TD
+    A[Raw Dental X-Ray] --> B[pano_clear.dataset]
+    B --> C[pano_clear.preprocess<br>CLAHE / 16-bit Norm]
+    C --> D[pano_clear.tiling<br>Cosine Blending]
+    D --> E[pano_clear.model<br>SwinIR-Lightweight]
+    E --> F[Enhanced / Super-Resolved Image]
+```
+
 ## 기술 스택
 - 모델: SwinIR-Lightweight
 - 프레임워크: PyTorch (MPS 가속 활용)
 - 환경: macOS (Apple Silicon M2 Pro)
+
+## ⚠️ Limitations
+- **극심한 노출 부족**: 완전히 식별이 불가능한 수준의 원본에서는 구조물(치아 등)을 창조하거나 생성해내지 않습니다.
+- **의료적 책임**: 이 모델은 진단 보조(CAD) 툴이며, 전문의의 판단을 대체할 수 없습니다.
 
 ## 설치 및 실행
 상세한 프로젝트 기획 및 실행 방법은 PROJECT_PLAN.md 파일을 참고하시기 바랍니다.

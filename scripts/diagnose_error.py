@@ -1,7 +1,7 @@
 import torch
 import os
 import yaml
-from core.model import SwinIRLight
+from pano_clear.model import SwinIRLight
 
 def check_model_shapes():
     with open('config/base_config.yaml', 'r') as f:

@@ -3,8 +3,8 @@ import yaml
 import torch
 import cv2
 import numpy as np
-from core.model import SwinIRLight
-from core.tiling import PanoTiler
+from pano_clear.model import SwinIRLight
+from pano_clear.tiling import PanoTiler
 
 def upscale_sample_image(input_path, output_path):
     # 1. Load Config
