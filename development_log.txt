@@ -7,6 +7,26 @@
 - [ ] 커뮤니티 및 협업 준비 (`CONTRIBUTING.md`, PR/Issue 템플릿)
 - [ ] 문서 고도화 (`ARCHITECTURE.md`, `DECISIONS.md`, `MODEL_CARD.md`)
 
+##### 2026-05-26 #####
+
+### Issue #4: Iterative SR 환각 모니터링 (UI 연동)
+- IterativeSRMonitor 도입 (SSIM 0.85 임계치 기준 환각 감지)
+- app.py 사이드바에 사용자 정의 가능한 임계치 슬라이더 반영
+
+### Issue #2: Batch Tiling 성능 최적화
+- 타일 순차 추론을 torch.stack 기반 max_batch_size=8 미니배치 추론으로 변경하여 GPU 메모리 I/O 병목 완화
+
+### Issue #1: Cross-Platform 추론 (CUDA/MPS 자동 감지 및 ONNX 익스포트)
+- src/pano_clear/device.py (get_best_device) 공통 유틸 적용
+- scripts/export_onnx.py 스크립트 작성하여 배포 유연성 확보
+
+### 의료 영상 데이터 전처리 시 16-bit DICOM 클리핑 데이터 손실 위험 해결 (Issue #3)
+- src/pano_clear/preprocess.py 리팩토링
+  - load_dicom: BitsStored를 통한 12/16-bit 심도 검증 (assert) 로직 추가 및 WindowCenter/WindowWidth 추출.
+  - apply_windowing: 단순 Min-Max 정규화를 치과 방사선 전용 Windowing으로 대체. 메타데이터 부재 시 1%~99% 백분위수를 사용하여 이상치에 의한 해상도 뭉개짐 방지.
+  - apply_clahe: 기존 8-bit 처리를 16-bit (0~65535) 스케일로 상향하여 치조골 및 미세선 보존율 극대화.
+- tests/test_preprocess.py 테스트 코드 현행화 및 Mock 기반 Bit Depth 검증 케이스 추가.
+
 ##### 2026-05-20 (8일차) #####
 
 ### 프로젝트 현황 분석 및 파악 진행

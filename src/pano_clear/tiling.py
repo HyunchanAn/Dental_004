@@ -90,7 +90,7 @@ class PanoTiler:
         
         return full_mask
 
-    def process_large_image(self, model, img_tensor, device):
+    def process_large_image(self, model, img_tensor, device, max_batch_size=8):
         """
         紐⑤뜽???ъ슜?섏뿬 ??⑸웾 ?대?吏 ?꾩껜瑜???쇰쭅 諛⑹떇?쇰줈 泥섎━.
         ?대?吏媛 ????ш린蹂대떎 ?묒쓣 寃쎌슦 ?⑤뵫 泥섎━??
@@ -108,14 +108,16 @@ class PanoTiler:
         
         with torch.no_grad():
             tiles, coords = self.tile_image(img_tensor)
+            num_tiles = len(tiles)
             processed_tiles = []
             
-            for tile in tiles:
-                tile = tile.unsqueeze(0).to(device)
-                out = model(tile)
-                processed_tiles.append(out.squeeze(0))
+            for batch_start in range(0, num_tiles, max_batch_size):
+                batch_end = min(batch_start + max_batch_size, num_tiles)
+                batch = tiles[batch_start:batch_end].to(device)
+                batch_out = model(batch)
+                processed_tiles.append(batch_out)
             
-            processed_tiles = torch.stack(processed_tiles)
+            processed_tiles = torch.cat(processed_tiles, dim=0)
             
             # ?⑤뵫???곹깭??????뺤긽
             new_h, new_w = img_tensor.shape[1], img_tensor.shape[2]
