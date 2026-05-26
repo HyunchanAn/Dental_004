@@ -4,6 +4,7 @@ import torch
 import cv2
 import numpy as np
 from pano_clear.model import SwinIRLight
+from pano_clear.device import get_best_device
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from tqdm import tqdm
@@ -14,12 +15,7 @@ def evaluate_performance():
         config = yaml.safe_load(f)
 
     # Windows ?섍꼍?대?濡?CPU ?ъ슜 (?뱀? CUDA/MPS 媛?????먮룞 ?좏깮)
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    elif torch.backends.mps.is_available():
-        device = torch.device('mps')
-    else:
-        device = torch.device('cpu')
+    device = get_best_device()
     
     print(f"?쒖슜 ?붾컮?댁뒪: {device}")
 

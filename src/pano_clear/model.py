@@ -94,11 +94,13 @@ class RSTB(nn.Module):
         return self.conv_last(res) + x
 
 if __name__ == "__main__":
-    # M2 Pro 硫붾え由?泥댄겕瑜??꾪븳 ?붾? ?먯꽌 ?뚯뒪??
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    # 크로스 플랫폼 디바이스 자동 감지 (Issue #1)
+    from pano_clear.device import get_best_device
+    device = get_best_device()
     model = SwinIRLight(upscale=2).to(device)
     dummy_input = torch.randn(1, 3, 64, 64).to(device)
     output = model(dummy_input)
-    print(f"?낅젰 ?ш린: {dummy_input.shape}")
-    print(f"異쒕젰 ?ш린: {output.shape}")
-    print(f"紐⑤뜽 ?뚮씪誘명꽣 ?? {sum(p.numel() for p in model.parameters())}")
+    print(f"사용 디바이스: {device}")
+    print(f"입력 크기: {dummy_input.shape}")
+    print(f"출력 크기: {output.shape}")
+    print(f"모델 파라미터 수: {sum(p.numel() for p in model.parameters())}")
