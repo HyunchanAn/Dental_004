@@ -7,15 +7,16 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from pano_clear.model import SwinIRLight
 from pano_clear.dataset import PanoDataset
+from pano_clear.device import get_best_device
 
 def train():
     # 1. ?ㅼ젙 濡쒕뱶
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    # 2. ?붾컮?댁뒪 ?ㅼ젙 (MPS 媛??
-    device = torch.device(config['device'])
-    print(f"?ъ슜 ?붾컮?댁뒪: {device}")
+    # 2. 디바이스 설정 (크로스 플랫폼)
+    device = get_best_device()
+    print(f"사용 디바이스: {device}")
 
     # 3. ?곗씠?곗뀑 諛?濡쒕뜑 援ъ꽦
     train_dataset = PanoDataset(

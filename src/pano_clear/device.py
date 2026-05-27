@@ -52,3 +52,22 @@ def get_device_info() -> Dict[str, str]:
     info["pytorch_version"] = torch.__version__
     
     return info
+
+def get_onnx_execution_providers():
+    """
+    ONNX Runtime을 위한 최적의 Execution Provider 목록을 반환합니다.
+    (Windows RTX 타겟: TensorRT/CUDA, Mac: CoreML, 그 외: CPU)
+    """
+    providers = []
+    
+    if torch.cuda.is_available():
+        # TensorRT가 설치되어 있다고 가정할 때 최상위 우선순위
+        providers.append('TensorrtExecutionProvider')
+        providers.append('CUDAExecutionProvider')
+        
+    if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        # Mac 환경 (CoreML을 통한 가속)
+        providers.append('CoreMLExecutionProvider')
+        
+    providers.append('CPUExecutionProvider')
+    return providers

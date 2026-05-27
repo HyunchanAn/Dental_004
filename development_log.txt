@@ -1,5 +1,29 @@
 # Pano_clear 개발일지
 
+##### 2026-05-28 #####
+
+### 이슈 1~4번 동시 해결 및 코드베이스 통합
+- [Issue 1] MPS 하드웨어 종속성 탈피 및 Cross-Platform 가속 엔진 적용
+  - `src/pano_clear/device.py` 내 `get_onnx_execution_providers()` 함수를 추가하여 TensorRT/CUDA, CoreML, CPU 등 구동 환경에 따른 최적 실행 공급자(Execution Provider) 분기 로직 추상화 완료.
+  - `scripts/export_onnx.py`를 점검하여 ONNX 포맷 변환 파이프라인 정상 연동 확인.
+  - `train_mps.py` 및 `upscale_sample.py`에서 하드코딩된 디바이스 할당 로직을 `get_best_device()`로 일괄 교체.
+
+- [Issue 2] Tiling 윈도우 오버랩 영역의 연산 중복 및 GPU I/O 병목 개선
+  - `src/pano_clear/tiling.py` 리팩토링. 
+  - `process_large_image` 함수 내에서 타일들을 `torch.stack`으로 단일 배치화하여 모델에 전달하도록 Batch Tiling 방식 도입.
+  - `merge_tiles` 함수에서 불필요한 블렌딩 대신 고정 크기 마진을 계산하여 중복 연산 없이 유효 영역만 크롭 및 결합하는 슬라이딩 윈도우 방식으로 전환하여 연산 속도 최적화.
+
+- [Issue 3] 16-bit DICOM 스케일 미지정 및 해상도 클리핑 데이터 손실 위험 방지
+  - `src/pano_clear/preprocess.py` 내에 실제 비트 심도가 12-bit/16-bit인지 검증하는 `assert` 로직 유지.
+  - DICOM 원본 메타데이터(Window Center/Width)가 없을 시 치아 경계부를 뭉개지 않도록 1~99 백분위수 기반 정규화를 수행하는 로직 검증 완료.
+
+- [Issue 4] Iterative SR (x4~x16) 연산 시 에러 전파 및 환각 현상 검증 장치 추가
+  - `scripts/evaluate_metrics.py`를 확장하여 x2 단계 뿐만 아니라 반복 호출 시(x4, x8, x16) 단계별로 다운샘플링 원본 대비 PSNR/SSIM 저하 추세를 추적할 수 있도록 벤치마크 코드 전면 개편.
+  - 평가 중 SSIM이 0.75 미만으로 떨어질 시 환각 현상 가능성에 대한 경고(Artifact Warning) 문구 출력 기능 통합.
+
+- `pyproject.toml`에 pytest용 `pythonpath = ["src"]` 설정을 추가하여 테스트 환경 복구.
+- streamlit cloud 배포 테스트 진행하지 않음 - 다음 작업 때 제일 먼저 해야 함.
+
 ## Senior-Level Checklist
 - [x] 프로젝트 구조 정리 및 라이브러리화 (`src` 레이아웃, `pyproject.toml`)
 - [x] 도커라이징 (`Dockerfile`, `.dockerignore`)

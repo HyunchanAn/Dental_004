@@ -40,41 +40,49 @@ class PanoTiler:
 
     def merge_tiles(self, tiles, coords, target_shape):
         """
-        ??쇰뱾???⑹퀜???꾩껜 ?대?吏 蹂듭썝.
+        타일들을 합쳐서 전체 이미지 복원 (단순 블렌딩이 아닌 크롭 및 결합 방식).
         tiles: (N, C, T, T) Tensor (Processed tiles)
-        coords: ??쇱쓽 ?쒖옉 醫뚰몴 由ъ뒪??(?먮낯 湲곗?)
+        coords: 타일의 시작 좌표 리스트 (원본 기준)
         target_shape: (C, H_large, W_large)
         """
         c, h_large, w_large = target_shape
         output = torch.zeros(target_shape, device=tiles.device)
-        weights = torch.zeros(target_shape, device=tiles.device)
-
-        # ???釉붾젋?⑹쓣 ?꾪븳 ?덈룄??留덉뒪???앹꽦 (寃쎄퀎硫댁쓣 遺?쒕읇寃?
-        mask = self._get_mask(self.tile_size * self.upscale).to(tiles.device)
+        
+        margin_up = (self.overlap // 2) * self.upscale
 
         for i, (y, x) in enumerate(coords):
             y_up, x_up = y * self.upscale, x * self.upscale
             t_size_up = self.tile_size * self.upscale
             
-            # ??쇱씠 ?대?吏 寃쎄퀎瑜?踰쀬뼱??寃쎌슦瑜??鍮꾪븳 ?щ씪?댁떛 怨꾩궛
             y_end = min(y_up + t_size_up, h_large)
             x_end = min(x_up + t_size_up, w_large)
             
             tile_h = y_end - y_up
             tile_w = x_end - x_up
             
-            # ??쇨낵 留덉뒪?щ? 寃쎄퀎 ?ш린??留욊쾶 ?먮쫫 (Clips if necessary)
             curr_tile = tiles[i][:, :tile_h, :tile_w]
-            curr_mask = mask[:tile_h, :tile_w]
             
-            output[:, y_up:y_end, x_up:x_end] += curr_tile * curr_mask
-            weights[:, y_up:y_end, x_up:x_end] += curr_mask
+            # 가장자리를 제외한 마진 계산
+            crop_y_start = 0 if y == 0 else margin_up
+            crop_x_start = 0 if x == 0 else margin_up
+            crop_y_end = tile_h if y_end == h_large else tile_h - margin_up
+            crop_x_end = tile_w if x_end == w_large else tile_w - margin_up
+            
+            valid_tile = curr_tile[:, crop_y_start:crop_y_end, crop_x_start:crop_x_end]
+            
+            out_y_start = y_up + crop_y_start
+            out_x_start = x_up + crop_x_start
+            out_y_end = y_up + crop_y_end
+            out_x_end = x_up + crop_x_end
+            
+            # 유효 영역 크롭 후 결과 이미지에 덮어쓰기 (Overwriting for any extra overlap)
+            output[:, out_y_start:out_y_end, out_x_start:out_x_end] = valid_tile
 
-        return output / (weights + 1e-8)
+        return output
 
     def _get_mask(self, size):
         """
-        ????뚮몢由щ줈 媛덉닔濡??щ챸?댁????좏삎 肄붿궗??留덉뒪???앹꽦.
+        ?€???뚮몢由щ줈 媛덉닔濡??щ챸?댁????좏삎 肄붿궗??留덉뒪???앹꽦.
         """
         mask_1d = torch.linspace(0, 1, steps=self.overlap * self.upscale)
         mask_1d = 0.5 - 0.5 * torch.cos(mask_1d * 3.14159)
@@ -108,16 +116,10 @@ class PanoTiler:
         
         with torch.no_grad():
             tiles, coords = self.tile_image(img_tensor)
-            num_tiles = len(tiles)
-            processed_tiles = []
             
-            for batch_start in range(0, num_tiles, max_batch_size):
-                batch_end = min(batch_start + max_batch_size, num_tiles)
-                batch = tiles[batch_start:batch_end].to(device)
-                batch_out = model(batch)
-                processed_tiles.append(batch_out)
-            
-            processed_tiles = torch.cat(processed_tiles, dim=0)
+            # [Issue 2] 분할된 패치들을 단일 배치로 묶어 한 번의 포워드 패스로 처리 (Batch Tiling)
+            tiles = tiles.to(device)
+            processed_tiles = model(tiles)
             
             # ?⑤뵫???곹깭??????뺤긽
             new_h, new_w = img_tensor.shape[1], img_tensor.shape[2]
