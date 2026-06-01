@@ -36,11 +36,11 @@ sequenceDiagram
 ##  Architecture Diagram
 ```mermaid
 graph TD
-    A[Raw Dental X-Ray] --> B[pano_clear.dataset]
-    B --> C[pano_clear.preprocess<br>CLAHE / 16-bit Norm]
-    C --> D[pano_clear.tiling<br>Cosine Blending]
-    D --> E[pano_clear.model<br>SwinIR-Lightweight]
-    E --> F[Enhanced / Super-Resolved Image]
+    A["Raw Dental X-Ray"] --> B["pano_clear.dataset"]
+    B --> C["pano_clear.preprocess<br>CLAHE / 16-bit Norm"]
+    C --> D["pano_clear.tiling<br>Cosine Blending"]
+    D --> E["pano_clear.model<br>SwinIR-Lightweight"]
+    E --> F["Enhanced / Super-Resolved Image"]
 ```
 
 ## 기술 스택
