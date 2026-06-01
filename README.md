@@ -9,13 +9,31 @@
 
 치과용 파노라마 영상의 화질 개선 및 초해상도 복원을 위한 AI 프로젝트입니다.
 
+## Technical Architecture & Workflow
+### Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Pre as Preprocessor
+    participant Tiler as Tiling Engine
+    participant Model as SwinIR
+    User->>Pre: Upload Low-Dose Pano
+    Pre->>Pre: CLAHE & 16-bit Norm
+    Pre->>Tiler: Chunk Image
+    Tiler->>Model: Forward Pass
+    Model-->>Tiler: Restored Patches
+    Tiler->>Tiler: Cosine Blending Merge
+    Tiler-->>User: High-Res Enhanced Image
+```
+
+
 ## 주요 기능
 - **저선량 파노라마 영상 처리**: 원본의 노이즈를 완벽하게 제어(Denoising) 및 대비 개선(CLAHE).
 - **무한 확장 초해상도(Iterative Super-Resolution)**: 기본 x2 모델을 기반으로 x4, x8, x16 이상의 고배율까지 픽셀 손실 없이 인터랙티브하게 반복 복원하는 기능.
 - **타임라인(History) 뷰어**: 화질 개선 단계를 아래로 누적하여 보여주어 이전 결과와 직관적으로 비교할 수 있는 UI.
 - **메디컬 샤프닝(Medical Sharpening)**: 치근, 치관, 피질골 등 치과 진단에 필수적인 경계선을 슬라이더를 통해 실시간으로 뚜렷하게 조절하는 후처리 필터 적용.
 - **M2 Pro 환경 최적화**: OOB(Out of Bounds) 방지 패딩과 클리핑 로직이 추가된 고해상도 타일링 시스템으로 16GB RAM 환경에서도 안전한 대용량 처리 지원.
-## 🏛 Architecture Diagram
+##  Architecture Diagram
 ```mermaid
 graph TD
     A[Raw Dental X-Ray] --> B[pano_clear.dataset]
@@ -30,14 +48,14 @@ graph TD
 - 프레임워크: PyTorch (MPS 가속 활용)
 - 환경: macOS (Apple Silicon M2 Pro)
 
-## ⚠️ Limitations
+## ️ Limitations
 - **극심한 노출 부족**: 완전히 식별이 불가능한 수준의 원본에서는 구조물(치아 등)을 창조하거나 생성해내지 않습니다.
 - **의료적 책임**: 이 모델은 진단 보조(CAD) 툴이며, 전문의의 판단을 대체할 수 없습니다.
 
 ## 설치 및 실행
 상세한 프로젝트 기획 및 실행 방법은 PROJECT_PLAN.md 파일을 참고하시기 바랍니다.
 
-## 🚀 데모 및 실행 (Streamlit)
+##  데모 및 실행 (Streamlit)
 본 프로젝트는 **Streamlit**을 이용한 데모 앱을 제공합니다.
 웹 브라우저 상에서 이미지를 업로드하고 Denoising & Super-Resolution 결과를 바로 확인할 수 있습니다.
 
@@ -50,7 +68,7 @@ streamlit run app.py
 ```
 *(Streamlit Cloud 환경의 경우 `checkpoints/pano_swinir_epoch_100.pth` 모델이 함께 업로드되어 있어야 작동합니다.)*
 
-## 📊 결과물 예시 (Results)
+##  결과물 예시 (Results)
 
 ### 1. 타일링 기반 전체 파노라마 복원
 ![전체 파노라마 결과](docs/full_panorama_result.png)
@@ -78,7 +96,7 @@ streamlit run app.py
 
 데이터 다운로드 후 data/raw 디렉토리에 배치하여 활용합니다.
 
-## 🔍 QA 및 성능 평가 (Evaluation)
+##  QA 및 성능 평가 (Evaluation)
 
 본 프로젝트는 의료 영상의 특성을 고려하여 엄격한 검증 과정을 거쳤습니다.
 
