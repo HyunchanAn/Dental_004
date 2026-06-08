@@ -46,7 +46,7 @@ def train():
     ).to(device)
 
     # 5. 손실 함수(정규화 포함) 및 옵티마이저 (L1 Loss + EW-TV)
-    max_lambda_tv = 1e-4
+    max_lambda_tv = 0.01
     criterion = InverseProblemRegularizedLoss(lambda_tv=max_lambda_tv)
     optimizer = optim.Adam(model.parameters(), lr=config['train']['learning_rate'])
 
@@ -88,11 +88,13 @@ def train():
             epoch_tv_loss += tv_val
             
             if batch_idx % config['train']['log_interval'] == 0:
-                progress_bar.set_postfix(l1=f"{l1_val:.5f}", tv=f"{tv_val:.5f}", lam=f"{current_lambda:.1e}")
+                ratio = (current_lambda * tv_val) / (l1_val + 1e-8)
+                progress_bar.set_postfix(l1=f"{l1_val:.5f}", tv=f"{tv_val:.5f}", lam=f"{current_lambda:.1e}", ratio=f"{ratio:.2%}")
 
         avg_l1 = epoch_l1_loss / len(train_loader)
         avg_tv = epoch_tv_loss / len(train_loader)
-        print(f"Epoch {epoch} 평균 - L1: {avg_l1:.6f}, TV: {avg_tv:.6f}, Lambda: {current_lambda:.1e}")
+        avg_ratio = (current_lambda * avg_tv) / (avg_l1 + 1e-8)
+        print(f"Epoch {epoch} 평균 - L1: {avg_l1:.6f}, TV: {avg_tv:.6f}, Lambda: {current_lambda:.1e}, Ratio: {avg_ratio:.2%}")
 
         # 8. 二쇨린??紐⑤뜽 ???
         if epoch % config['train']['save_interval'] == 0:
