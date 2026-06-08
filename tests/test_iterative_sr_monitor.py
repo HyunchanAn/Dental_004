@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 from pano_clear.iterative_sr_monitor import IterativeSRMonitor
 
