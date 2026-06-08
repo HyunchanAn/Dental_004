@@ -2,6 +2,11 @@
 
 ##### 2026-06-08 #####
 
+### Issue #6: Mathematical Regularization 도입 및 안정성 강화
+- **수학적 정규화(EW-TV) 적용**: Inverse Problem 이론(MREIT 논문 참조)을 활용해 `src/pano_clear/loss.py`에 `EdgeWeightedTVLoss` 추가. 기존의 단순 TV Loss가 치조골 패턴을 지워버리는 한계점(Staircase Artifact)을 극복하기 위해, 원본 이미지의 Gradient Magnitude를 역으로 가중치( $G = \exp(-\alpha E)$ )로 부여하여 엣지 영역을 보호하고 연조직에만 평활화를 강제함.
+- **Warm-up 스케줄러**: `scripts/train_mps.py`에 $\lambda_{tv}$ Warm-up 스케줄러 반영. 초기 10 Epoch는 L1 위주로 수렴시키고, 이후 20 Epoch에 걸쳐 1e-4까지 점진적으로 정규화 가중치를 주입하도록 설계.
+- **문서화**: `README.md` 하단 References에 논문 2편을 국제 의료 영상 학회(IEEE TMI) 스타일 규격으로 인용 및 업데이트.
+
 ### 다단계 배율(x4~x16) Oversmoothing 진단 및 Single-pass 구조 전면 리팩토링
 - **문제 인식**: 반복적인 `tiler.process_large_image` 호출 시(x4, x8 등), x2 모델이 이미 출력한 매끄러운 이미지를 다시 LR로 착각하여 다듬어버리는 현상(Oversmoothing) 발생 확인.
 - **해결안 설계**:

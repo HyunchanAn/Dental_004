@@ -25,6 +25,9 @@ graph TD
     E --> F[Enhanced / Super-Resolved Image]
 ```
 
+### 🧠 Mathematical Regularization (Inverse Problem Theory)
+본 모델은 역문제(Inverse Problem) 이론을 바탕으로 설계된 **Edge-Weighted Total Variation (EW-TV)** 정규화 기법을 도입했습니다. 단순 L1 복원이 유발할 수 있는 Ill-posed 환각(Hallucination) 현상을 방지하기 위해, MREIT의 Equipotential line 기울기 기반 유일성(Uniqueness) 이론[1, 2]을 차용하여 치아 경계 등 고주파 영역의 디테일을 유지하면서 평탄 영역의 노이즈를 수학적으로 억제합니다.
+
 ## 기술 스택
 - 모델: SwinIR-Lightweight
 - 프레임워크: PyTorch (MPS 가속 활용)
@@ -132,3 +135,7 @@ streamlit run app.py
 - config: 모델 및 실험 설정 파일
 - data: 데이터셋 저장소
 - docs: 관련 문서 및 리서치 자료
+
+## References
+[1] O. Kwon, J. Y. Lee, and J. R. Yoon, "Equipotential line method for magnetic resonance electrical impedance tomography," *Inverse Problems*, vol. 18, no. 4, pp. 1089-1100, 2002. DOI: [10.1088/0266-5611/18/4/310](https://doi.org/10.1088/0266-5611/18/4/310)
+[2] J. Y. Lee, "A reconstruction formula and uniqueness of conductivity in MREIT using two internal current distributions," *Inverse Problems*, vol. 20, no. 3, pp. 847-858, 2004. DOI: [10.1088/0266-5611/20/3/012](https://doi.org/10.1088/0266-5611/20/3/012)
