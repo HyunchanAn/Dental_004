@@ -26,7 +26,7 @@ class EdgeWeightedTVLoss(nn.Module):
         hr_diff_y = hr_diff_y[:, :, :, :-1]
         
         # 엣지 맵 계산 (Magnitude)
-        edge_map = torch.sqrt(hr_diff_x ** 2 + hr_diff_y ** 2 + 1e-8)
+        edge_map = torch.sqrt(hr_diff_x ** 2 + hr_diff_y ** 2 + 1e-8).detach()
         
         # 2. 가중치 매트릭스 G 계산 (에지가 강할수록 G는 0에 가까워짐)
         # G = exp(-alpha * E) 형태를 사용하여 평탄 영역(E~0)은 1, 엣지 영역(E>0)은 작아지게 함
