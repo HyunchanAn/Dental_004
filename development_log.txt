@@ -1,5 +1,39 @@
 # Pano_clear 개발일지
 
+##### 2026-06-08 #####
+
+### 다단계 배율(x4~x16) Oversmoothing 진단 및 Single-pass 구조 전면 리팩토링
+- **문제 인식**: 반복적인 `tiler.process_large_image` 호출 시(x4, x8 등), x2 모델이 이미 출력한 매끄러운 이미지를 다시 LR로 착각하여 다듬어버리는 현상(Oversmoothing) 발생 확인.
+- **해결안 설계**:
+  - 기존의 반복 호출(Recursive SR) 루프 폐기.
+  - 타깃 해상도 $W_{target} = W_{orig} \times S$를 계산하고, 모델 입력 해상도를 $W_{in} = \max(W_{target} / 2, 1200)$로 지정.
+  - 단일 통과(Single-pass) 방식으로 $W_{in}$으로 `Lanczos4` 선확장 후, 1회의 모델 추론만을 거쳐 최종 해상도로 렌더링.
+- **실험 및 롤백 (Domain Mismatch)**:
+  - 307px 극소형 이미지의 x2 추론 시 VRAM 최적화를 위해 $W_{in} = 1200$ 강제 적용을 배제하는 예외 로직을 임시 도입했으나, 치아 구조의 픽셀 해상도가 모델의 Receptive Field와 어긋나 심각한 수채화 현상이 다시 재현됨을 실험을 통해 입증.
+  - 의료 영상의 무결성을 위해 VRAM 최적화 예외 로직을 파기하고, 어떠한 소형 이미지라도 무조건 1200px 도메인 매칭을 강제하는 수식으로 최종 롤백 및 통합.
+
+### UI 테스트 피드백 및 이슈 분석 (디테일 뭉개짐 현상)
+- **현상**: Streamlit UI의 '실전 모드'에서 원본 이미지를 업로드하고 x2 AI 화질 개선을 실행했을 때, 디테일이 선명해지는 대신 오히려 수채화처럼 뭉개지는 현상(Over-smoothing) 발생.
+- **원인 분석 (Domain Gap / Degradation Mismatch)**:
+  - 현재 학습된 `pano_swinir_epoch_100.pth` 모델은 저해상도(Downscaled) 및 노이즈가 추가된 LR 이미지를 HR로 복원하도록 학습됨 (`dataset.py`의 학습 로직).
+  - 하지만 '실전 모드' 추론 시, 다운샘플링되지 않은 고해상도 원본 이미지가 그대로 모델에 입력됨.
+  - 모델은 고해상도 원본의 미세한 고주파 디테일(치아 경계선, 골조직 등)을 '학습 시 보았던 노이즈'로 오인하여 강하게 억제(Smoothing)한 뒤 2배로 업스케일함. 이로 인해 디테일이 심각하게 손실됨.
+- **향후 해결 방향**:
+  1. 원본 이미지를 먼저 Downscale 후 복원하여 1x Denoising 효과를 얻는 방향으로 파이프라인 수정.
+  2. 고해상도 입력에 대응하는 1x Denoising/Enhancement 전용 모델 추가 학습.
+  3. 원본 이미지의 고주파 성분을 분리하여 모델 결과물에 합성하는 Frequency Blending 방식 도입 검토.
+  *추가로 `tiling.py`의 `merge_tiles` 패치 시, 이미지 크기가 stride와 맞지 않을 때 발생하는 margin 계산 오차 수정 필요성 확인.*
+
+### 피드백 반영 및 긴급 패치 (대안 1 하이브리드 모드 및 Tiling 버그 수정 적용)
+- **app.py 수정**: 
+  - 사이드바 내 '실전 모드' 옵션 하위에 [저화질 다운샘플링 후 SR (추천)] 및 [원본 해상도 유지] 토글을 추가함. 
+  - 사용자가 선택적으로 Domain Gap 현상을 방지하고, 원래 목적인 Denoising 효과를 얻을 수 있도록 유연성 확보.
+- **src/pano_clear/tiling.py 수정**:
+  - `merge_tiles`의 마진(Margin) 오류를 발생시켰던 크롭(Crop) 방식을 제거하고, 의료 영상 표준인 코사인 블렌딩(Cosine Blending) 매트릭스 병합 로직으로 원복함.
+  - 가변 해상도 패딩(Variable Resolution Padding) 로직을 주입하여, 입력 이미지가 항상 타일링의 stride에 완벽히 나누어 떨어지도록 처리. 이로 인해 Edge Artifact 원천 차단 완료.
+- **장기 계획**: Real-World Degradation 특성을 반영한 1x Denoising / 2x Real-SR 전용 모델(SwinIR)의 백그라운드 학습 승인 및 파이프라인 준비 예정.
+
+
 ##### 2026-05-28 #####
 
 ### 이슈 1~4번 동시 해결 및 코드베이스 통합
