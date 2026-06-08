@@ -2,6 +2,9 @@
 
 ##### 2026-06-08 #####
 
+### v1.0.0 릴리즈 생성 및 배포
+- GitHub Release(v1.0.0) 생성 완료. 프로젝트 안정화 및 첫 공식 마일스톤 달성을 기록함.
+
 ### Issue #6: Mathematical Regularization 도입 및 안정성 강화
 - **수학적 정규화(EW-TV) 적용**: Inverse Problem 이론(MREIT 논문 참조)을 활용해 `src/pano_clear/loss.py`에 `EdgeWeightedTVLoss` 추가. 기존의 단순 TV Loss가 치조골 패턴을 지워버리는 한계점(Staircase Artifact)을 극복하기 위해, 원본 이미지의 Gradient Magnitude를 역으로 가중치( $G = \exp(-\alpha E)$ )로 부여하여 엣지 영역을 보호하고 연조직에만 평활화를 강제함.
 - **Warm-up 스케줄러**: `scripts/train_mps.py`에 $\lambda_{tv}$ Warm-up 스케줄러 반영. 초기 10 Epoch는 L1 위주로 수렴시키고, 이후 20 Epoch에 걸쳐 1e-4까지 점진적으로 정규화 가중치를 주입하도록 설계.
