@@ -4,13 +4,14 @@ import torch
 import matplotlib.pyplot as plt
 from pano_clear.model import SwinIRLight
 from pano_clear.dataset import PanoDataset
+from pano_clear.device import get_best_device
 
 def run_inference():
     # 1. ?ㅼ젙 濡쒕뱶
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    device = torch.device(config['device'])
+    device = get_best_device()
     
     # 2. 紐⑤뜽 濡쒕뱶 諛?媛以묒튂 蹂듭썝
     model = SwinIRLight(

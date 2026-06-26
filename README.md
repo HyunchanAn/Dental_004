@@ -43,6 +43,9 @@ graph TD
     E --> F["Enhanced / Super-Resolved Image"]
 ```
 
+### 🧠 Mathematical Regularization (Inverse Problem Theory)
+본 모델은 역문제(Inverse Problem) 이론을 바탕으로 설계된 **Edge-Weighted Total Variation (EW-TV)** 정규화 기법을 도입했습니다. 단순 L1 복원이 유발할 수 있는 Ill-posed 환각(Hallucination) 현상을 방지하기 위해, MREIT의 Equipotential line 기울기 기반 유일성(Uniqueness) 이론[1, 2]을 차용하여 치아 경계 등 고주파 영역의 디테일을 유지하면서 평탄 영역의 노이즈를 수학적으로 억제합니다.
+
 ## 기술 스택
 - 모델: SwinIR-Lightweight
 - 프레임워크: PyTorch (MPS 가속 활용)
@@ -109,11 +112,18 @@ streamlit run app.py
 - **학습 데이터**: Tufts Dental Database + DENTEX Dataset (총 약 4,600장)
 - **검증 데이터**: 학습에 포함되지 않은 독립된 Tufts 테스트 셋 (100장 이상)
 
-### 3. 주요 평가 항목
+### 3. 주요 평가 항목 및 임상적 품질(SSIM) 기준
 - **Loss 수렴도**: L1 Loss를 통한 정밀한 픽셀 단위 복원력 측정.
 - **노이즈 억제 (Denoising)**: 저선량 시뮬레이션 환경에서 가우시안 노이즈 제거 능력.
 - **해부학적 구조 보존 (Detail Preservation)**: 치근(Root), 치수강(Pulp), 피질골(Cortical Bone)의 경계선 선명도.
 - **타일링 안정성**: 4K급 거대 영상 처리 시 타일 간 경계면(Artifact) 발생 여부.
+
+> **[SSIM 기반 환각 경고 장치 및 임상적 근거]**
+> 의료/치과 초해상도(SR) 연구 분야에서 임상적으로 "합격"을 보장하는 단일 SSIM 임계치는 존재하지 않습니다.
+> 그러나 최신 문헌(Oxford Academic, MDPI Sensors 2024 등)에 따르면 우수한 SR 모델들은 통상적으로 **0.85 ~ 0.95+**의 SSIM을 보고합니다. 
+> Pano_clear는 이러한 문헌 기반의 하한선인 **0.85**를 기본 경고 임계치로 채택하여, 반복(Iterative) SR 수행 시 발생할 수 있는 
+> **인위적 환각(Hallucination)** 현상을 모니터링합니다. 임상 현장마다 판단 기준이 다를 수 있으므로, 
+> 사용자는 UI의 슬라이더를 통해 이 임계치를 유연하게 조정할 수 있습니다.
 
 ### 4. 최종 평가 결과
 
@@ -143,3 +153,7 @@ streamlit run app.py
 - config: 모델 및 실험 설정 파일
 - data: 데이터셋 저장소
 - docs: 관련 문서 및 리서치 자료
+
+## References
+[1] O. Kwon, J. Y. Lee, and J. R. Yoon, "Equipotential line method for magnetic resonance electrical impedance tomography," *Inverse Problems*, vol. 18, no. 4, pp. 1089-1100, 2002. DOI: [10.1088/0266-5611/18/4/310](https://doi.org/10.1088/0266-5611/18/4/310)
+[2] J. Y. Lee, "A reconstruction formula and uniqueness of conductivity in MREIT using two internal current distributions," *Inverse Problems*, vol. 20, no. 3, pp. 847-858, 2004. DOI: [10.1088/0266-5611/20/3/012](https://doi.org/10.1088/0266-5611/20/3/012)
