@@ -7,13 +7,14 @@ import matplotlib.pyplot as plt
 from pano_clear.model import SwinIRLight
 from pano_clear.preprocess import PanoPreprocessor
 from pano_clear.tiling import PanoTiler
+from pano_clear.device import get_best_device
 
 def full_inference():
     # 1. ?ㅼ젙 濡쒕뱶
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    device = torch.device(config['device'])
+    device = get_best_device()
     preprocessor = PanoPreprocessor()
     tiler = PanoTiler(tile_size=config['dataset']['patch_size'], overlap=32, upscale=config['model']['upscale'])
 

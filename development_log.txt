@@ -1,11 +1,104 @@
 # Pano_clear 개발일지
 
+##### 2026-06-08 #####
+
+### v1.0.0 릴리즈 생성 및 배포
+- GitHub Release(v1.0.0) 생성 완료. 프로젝트 안정화 및 첫 공식 마일스톤 달성을 기록함.
+
+### Issue #6: Mathematical Regularization 도입 및 안정성 강화
+- **수학적 정규화(EW-TV) 적용**: Inverse Problem 이론(MREIT 논문 참조)을 활용해 `src/pano_clear/loss.py`에 `EdgeWeightedTVLoss` 추가. 기존의 단순 TV Loss가 치조골 패턴을 지워버리는 한계점(Staircase Artifact)을 극복하기 위해, 원본 이미지의 Gradient Magnitude를 역으로 가중치( $G = \exp(-\alpha E)$ )로 부여하여 엣지 영역을 보호하고 연조직에만 평활화를 강제함.
+- **Warm-up 스케줄러**: `scripts/train_mps.py`에 $\lambda_{tv}$ Warm-up 스케줄러 반영. 초기 10 Epoch는 L1 위주로 수렴시키고, 이후 20 Epoch에 걸쳐 1e-4까지 점진적으로 정규화 가중치를 주입하도록 설계.
+- **문서화**: `README.md` 하단 References에 논문 2편을 국제 의료 영상 학회(IEEE TMI) 스타일 규격으로 인용 및 업데이트.
+
+### 다단계 배율(x4~x16) Oversmoothing 진단 및 Single-pass 구조 전면 리팩토링
+- **문제 인식**: 반복적인 `tiler.process_large_image` 호출 시(x4, x8 등), x2 모델이 이미 출력한 매끄러운 이미지를 다시 LR로 착각하여 다듬어버리는 현상(Oversmoothing) 발생 확인.
+- **해결안 설계**:
+  - 기존의 반복 호출(Recursive SR) 루프 폐기.
+  - 타깃 해상도 $W_{target} = W_{orig} \times S$를 계산하고, 모델 입력 해상도를 $W_{in} = \max(W_{target} / 2, 1200)$로 지정.
+  - 단일 통과(Single-pass) 방식으로 $W_{in}$으로 `Lanczos4` 선확장 후, 1회의 모델 추론만을 거쳐 최종 해상도로 렌더링.
+- **실험 및 롤백 (Domain Mismatch)**:
+  - 307px 극소형 이미지의 x2 추론 시 VRAM 최적화를 위해 $W_{in} = 1200$ 강제 적용을 배제하는 예외 로직을 임시 도입했으나, 치아 구조의 픽셀 해상도가 모델의 Receptive Field와 어긋나 심각한 수채화 현상이 다시 재현됨을 실험을 통해 입증.
+  - 의료 영상의 무결성을 위해 VRAM 최적화 예외 로직을 파기하고, 어떠한 소형 이미지라도 무조건 1200px 도메인 매칭을 강제하는 수식으로 최종 롤백 및 통합.
+
+### UI 테스트 피드백 및 이슈 분석 (디테일 뭉개짐 현상)
+- **현상**: Streamlit UI의 '실전 모드'에서 원본 이미지를 업로드하고 x2 AI 화질 개선을 실행했을 때, 디테일이 선명해지는 대신 오히려 수채화처럼 뭉개지는 현상(Over-smoothing) 발생.
+- **원인 분석 (Domain Gap / Degradation Mismatch)**:
+  - 현재 학습된 `pano_swinir_epoch_100.pth` 모델은 저해상도(Downscaled) 및 노이즈가 추가된 LR 이미지를 HR로 복원하도록 학습됨 (`dataset.py`의 학습 로직).
+  - 하지만 '실전 모드' 추론 시, 다운샘플링되지 않은 고해상도 원본 이미지가 그대로 모델에 입력됨.
+  - 모델은 고해상도 원본의 미세한 고주파 디테일(치아 경계선, 골조직 등)을 '학습 시 보았던 노이즈'로 오인하여 강하게 억제(Smoothing)한 뒤 2배로 업스케일함. 이로 인해 디테일이 심각하게 손실됨.
+- **향후 해결 방향**:
+  1. 원본 이미지를 먼저 Downscale 후 복원하여 1x Denoising 효과를 얻는 방향으로 파이프라인 수정.
+  2. 고해상도 입력에 대응하는 1x Denoising/Enhancement 전용 모델 추가 학습.
+  3. 원본 이미지의 고주파 성분을 분리하여 모델 결과물에 합성하는 Frequency Blending 방식 도입 검토.
+  *추가로 `tiling.py`의 `merge_tiles` 패치 시, 이미지 크기가 stride와 맞지 않을 때 발생하는 margin 계산 오차 수정 필요성 확인.*
+
+### 피드백 반영 및 긴급 패치 (대안 1 하이브리드 모드 및 Tiling 버그 수정 적용)
+- **app.py 수정**: 
+  - 사이드바 내 '실전 모드' 옵션 하위에 [저화질 다운샘플링 후 SR (추천)] 및 [원본 해상도 유지] 토글을 추가함. 
+  - 사용자가 선택적으로 Domain Gap 현상을 방지하고, 원래 목적인 Denoising 효과를 얻을 수 있도록 유연성 확보.
+- **src/pano_clear/tiling.py 수정**:
+  - `merge_tiles`의 마진(Margin) 오류를 발생시켰던 크롭(Crop) 방식을 제거하고, 의료 영상 표준인 코사인 블렌딩(Cosine Blending) 매트릭스 병합 로직으로 원복함.
+  - 가변 해상도 패딩(Variable Resolution Padding) 로직을 주입하여, 입력 이미지가 항상 타일링의 stride에 완벽히 나누어 떨어지도록 처리. 이로 인해 Edge Artifact 원천 차단 완료.
+- **장기 계획**: Real-World Degradation 특성을 반영한 1x Denoising / 2x Real-SR 전용 모델(SwinIR)의 백그라운드 학습 승인 및 파이프라인 준비 예정.
+
+
+##### 2026-05-28 #####
+
+### 이슈 1~4번 동시 해결 및 코드베이스 통합
+- [Issue 1] MPS 하드웨어 종속성 탈피 및 Cross-Platform 가속 엔진 적용
+  - `src/pano_clear/device.py` 내 `get_onnx_execution_providers()` 함수를 추가하여 TensorRT/CUDA, CoreML, CPU 등 구동 환경에 따른 최적 실행 공급자(Execution Provider) 분기 로직 추상화 완료.
+  - `scripts/export_onnx.py`를 점검하여 ONNX 포맷 변환 파이프라인 정상 연동 확인.
+  - `train_mps.py` 및 `upscale_sample.py`에서 하드코딩된 디바이스 할당 로직을 `get_best_device()`로 일괄 교체.
+
+- [Issue 2] Tiling 윈도우 오버랩 영역의 연산 중복 및 GPU I/O 병목 개선
+  - `src/pano_clear/tiling.py` 리팩토링. 
+  - `process_large_image` 함수 내에서 타일들을 `torch.stack`으로 단일 배치화하여 모델에 전달하도록 Batch Tiling 방식 도입.
+  - `merge_tiles` 함수에서 불필요한 블렌딩 대신 고정 크기 마진을 계산하여 중복 연산 없이 유효 영역만 크롭 및 결합하는 슬라이딩 윈도우 방식으로 전환하여 연산 속도 최적화.
+
+- [Issue 3] 16-bit DICOM 스케일 미지정 및 해상도 클리핑 데이터 손실 위험 방지
+  - `src/pano_clear/preprocess.py` 내에 실제 비트 심도가 12-bit/16-bit인지 검증하는 `assert` 로직 유지.
+  - DICOM 원본 메타데이터(Window Center/Width)가 없을 시 치아 경계부를 뭉개지 않도록 1~99 백분위수 기반 정규화를 수행하는 로직 검증 완료.
+
+- [Issue 4] Iterative SR (x4~x16) 연산 시 에러 전파 및 환각 현상 검증 장치 추가
+  - `scripts/evaluate_metrics.py`를 확장하여 x2 단계 뿐만 아니라 반복 호출 시(x4, x8, x16) 단계별로 다운샘플링 원본 대비 PSNR/SSIM 저하 추세를 추적할 수 있도록 벤치마크 코드 전면 개편.
+  - 평가 중 SSIM이 0.75 미만으로 떨어질 시 환각 현상 가능성에 대한 경고(Artifact Warning) 문구 출력 기능 통합.
+
+- `pyproject.toml`에 pytest용 `pythonpath = ["src"]` 설정을 추가하여 테스트 환경 복구.
+- streamlit cloud 배포 테스트 진행하지 않음 - 다음 작업 때 제일 먼저 해야 함.
+
 ## Senior-Level Checklist
 - [x] 프로젝트 구조 정리 및 라이브러리화 (`src` 레이아웃, `pyproject.toml`)
 - [x] 도커라이징 (`Dockerfile`, `.dockerignore`)
 - [x] 코드 품질 환경 표준화 (`.pre-commit-config.yaml`)
 - [ ] 커뮤니티 및 협업 준비 (`CONTRIBUTING.md`, PR/Issue 템플릿)
 - [ ] 문서 고도화 (`ARCHITECTURE.md`, `DECISIONS.md`, `MODEL_CARD.md`)
+
+##### 2026-05-26 #####
+
+### Issue #4: Iterative SR 환각 모니터링 (UI 연동)
+- IterativeSRMonitor 도입 (SSIM 0.85 임계치 기준 환각 감지)
+- app.py 사이드바에 사용자 정의 가능한 임계치 슬라이더 반영
+
+### Issue #2: Batch Tiling 성능 최적화
+- 타일 순차 추론을 torch.stack 기반 max_batch_size=8 미니배치 추론으로 변경하여 GPU 메모리 I/O 병목 완화
+
+### Issue #1: Cross-Platform 추론 (CUDA/MPS 자동 감지 및 ONNX 익스포트)
+- src/pano_clear/device.py (get_best_device) 공통 유틸 적용
+- scripts/export_onnx.py 스크립트 작성하여 배포 유연성 확보
+
+### 의료 영상 데이터 전처리 시 16-bit DICOM 클리핑 데이터 손실 위험 해결 (Issue #3)
+- src/pano_clear/preprocess.py 리팩토링
+  - load_dicom: BitsStored를 통한 12/16-bit 심도 검증 (assert) 로직 추가 및 WindowCenter/WindowWidth 추출.
+  - apply_windowing: 단순 Min-Max 정규화를 치과 방사선 전용 Windowing으로 대체. 메타데이터 부재 시 1%~99% 백분위수를 사용하여 이상치에 의한 해상도 뭉개짐 방지.
+  - apply_clahe: 기존 8-bit 처리를 16-bit (0~65535) 스케일로 상향하여 치조골 및 미세선 보존율 극대화.
+- tests/test_preprocess.py 테스트 코드 현행화 및 Mock 기반 Bit Depth 검증 케이스 추가.
+
+##### 2026-05-20 (8일차) #####
+
+### 프로젝트 현황 분석 및 파악 진행
+
+1. Antigravity AI 협업 파트너로서 프로젝트 소스코드 및 개발 문서 분석 완료.
+2. SwinIR-Lightweight 기반 초해상도 및 화질 개선 핵심 로직과 Streamlit 데모 앱(app.py), 유닛 테스트(tests/), CI/CD 파이프라인(ci.yml) 동작 원리 파악.
 
 ##### 2026-05-18 (7일차) #####
 

@@ -7,15 +7,17 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from pano_clear.model import SwinIRLight
 from pano_clear.dataset import PanoDataset
+from pano_clear.device import get_best_device
+from pano_clear.loss import InverseProblemRegularizedLoss
 
 def train():
     # 1. ?ㅼ젙 濡쒕뱶
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    # 2. ?붾컮?댁뒪 ?ㅼ젙 (MPS 媛??
-    device = torch.device(config['device'])
-    print(f"?ъ슜 ?붾컮?댁뒪: {device}")
+    # 2. 디바이스 설정 (크로스 플랫폼)
+    device = get_best_device()
+    print(f"사용 디바이스: {device}")
 
     # 3. ?곗씠?곗뀑 諛?濡쒕뜑 援ъ꽦
     train_dataset = PanoDataset(
@@ -43,8 +45,9 @@ def train():
         window_size=config['model']['window_size']
     ).to(device)
 
-    # 5. ?먯떎 ?⑥닔 諛??듯떚留덉씠? (L1 Loss ?ъ슜 - ?좊챸???좎????좊━)
-    criterion = nn.L1Loss()
+    # 5. 손실 함수(정규화 포함) 및 옵티마이저 (L1 Loss + EW-TV)
+    max_lambda_tv = 0.01
+    criterion = InverseProblemRegularizedLoss(lambda_tv=max_lambda_tv)
     optimizer = optim.Adam(model.parameters(), lr=config['train']['learning_rate'])
 
     # 6. 泥댄겕?ъ씤??寃쎈줈 ?앹꽦
@@ -56,7 +59,16 @@ def train():
 
     for epoch in range(1, epochs + 1):
         model.train()
-        epoch_loss = 0.0
+        epoch_l1_loss = 0.0
+        epoch_tv_loss = 0.0
+        
+        # Warm-up Scheduler: 초반 10 Epoch는 L1에 집중, 이후 20 Epoch에 걸쳐 서서히 TV 가중치 주입
+        if epoch <= 10:
+            current_lambda = 0.0
+        elif epoch <= 30:
+            current_lambda = max_lambda_tv * ((epoch - 10) / 20.0)
+        else:
+            current_lambda = max_lambda_tv
         
         progress_bar = tqdm(train_loader, desc=f"Epoch [{epoch}/{epochs}]")
         for batch_idx, batch in enumerate(progress_bar):
@@ -66,20 +78,23 @@ def train():
             optimizer.zero_grad()
             
             # Forward
-            sr = model(lr)
-            loss = criterion(sr, hr)
+            loss, l1_val, tv_val = criterion(sr, hr, current_lambda=current_lambda)
             
             # Backward
             loss.backward()
             optimizer.step()
 
-            epoch_loss += loss.item()
+            epoch_l1_loss += l1_val
+            epoch_tv_loss += tv_val
             
             if batch_idx % config['train']['log_interval'] == 0:
-                progress_bar.set_postfix(loss=loss.item())
+                ratio = (current_lambda * tv_val) / (l1_val + 1e-8)
+                progress_bar.set_postfix(l1=f"{l1_val:.5f}", tv=f"{tv_val:.5f}", lam=f"{current_lambda:.1e}", ratio=f"{ratio:.2%}")
 
-        avg_loss = epoch_loss / len(train_loader)
-        print(f"?먰룺 {epoch} ?됯퇏 ?먯떎: {avg_loss:.6f}")
+        avg_l1 = epoch_l1_loss / len(train_loader)
+        avg_tv = epoch_tv_loss / len(train_loader)
+        avg_ratio = (current_lambda * avg_tv) / (avg_l1 + 1e-8)
+        print(f"Epoch {epoch} 평균 - L1: {avg_l1:.6f}, TV: {avg_tv:.6f}, Lambda: {current_lambda:.1e}, Ratio: {avg_ratio:.2%}")
 
         # 8. 二쇨린??紐⑤뜽 ???
         if epoch % config['train']['save_interval'] == 0:
@@ -88,7 +103,8 @@ def train():
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': avg_loss,
+                'loss_l1': avg_l1,
+                'loss_tv': avg_tv,
             }, save_path)
             print(f"泥댄겕?ъ씤??????꾨즺: {save_path}")
 

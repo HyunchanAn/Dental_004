@@ -5,14 +5,15 @@ import cv2
 import numpy as np
 from pano_clear.model import SwinIRLight
 from pano_clear.tiling import PanoTiler
+from pano_clear.device import get_best_device
 
 def upscale_sample_image(input_path, output_path):
     # 1. Load Config
     with open('config/base_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    # Use CPU if MPS is not available for testing stability in all environments
-    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    # Use get_best_device() for cross-platform support
+    device = get_best_device()
     print(f"Using device: {device}")
 
     # Force 2x or 4x scale if needed, but current model is trained for upscale in config
