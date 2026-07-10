@@ -250,3 +250,11 @@
 
 2026-06-02 00:47:22
 - README.md 아키텍처 다이어그램 Mermaid 문법 오류(괄호 등 특수문자 따옴표 처리) 수정
+
+##### 2026-07-10 E2E Validation #####
+
+### E2E Validation 및 모델 평가 완료
+- Dental_000 통합 검증 계획에 따라 Dental_004의 단위 테스트(pytest) 수행 및 패스.
+- 모델 성능 벤치마크 평가(evaluate_metrics.py) 수행 결과 PSNR ~20dB 및 낮은 SSIM 기록 (환각 발생 우려 확인).
+- `reports_archive/260710_0900_SwinIR_Pano_SR_E2E_Validation_Report.md` 보고서 작성 완료.
+- CI/CD 워크플로우를 Docker 빌드까지 검증하도록 업데이트함.

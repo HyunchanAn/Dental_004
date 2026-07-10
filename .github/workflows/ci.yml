@@ -32,3 +32,13 @@ jobs:
 
     - name: Run Unit Tests
       run: python -m pytest tests/ -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Build Docker image
+      run: |
+        docker build -t pano_clear:latest .
