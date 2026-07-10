@@ -1,17 +1,13 @@
 # Pano_clear
 
-[![Status](https://img.shields.io/badge/Status-v1.0_Release-4c1)](https://github.com/HyunchanAn/Pano_clear)
-[![CI Pipeline](https://github.com/HyunchanAn/Pano_clear/actions/workflows/ci.yml/badge.svg)](https://github.com/HyunchanAn/Pano_clear/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/Python-3.10+-007ec6)](https://github.com/HyunchanAn/Pano_clear)
-[![Model](https://img.shields.io/badge/Model-SwinIR--Lightweight-d00)](https://github.com/HyunchanAn/Pano_clear)
-[![UI](https://img.shields.io/badge/UI-Streamlit-f39c12)](https://github.com/HyunchanAn/Pano_clear)
+![Status](https://img.shields.io/badge/Status-v1.0%20Release-brightgreen) ![Python](https://img.shields.io/badge/Python-3.12%2B-blue) ![Backend](https://img.shields.io/badge/Backend-YOLOv8-red) ![UI](https://img.shields.io/badge/UI-Streamlit-orange) ![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD%20Pipeline-passing-brightgreen?logo=github)
 
 
 치과용 파노라마 영상의 화질 개선 및 초해상도 복원을 위한 AI 프로젝트입니다.
 
+## 설치 및 실행 방법
 
-
-## 📥 Dataset & Model Checkpoints Setup
+### Dataset & Model Checkpoints Setup
 이 프로젝트는 대용량 데이터셋과 사전 학습된 모델 가중치(Checkpoints)가 필요합니다. 
 (GitHub에는 소스코드만 올라가 있습니다.)
 
@@ -23,8 +19,7 @@
 2. **주의사항 (`.env` 파일):** 
    이 프로젝트를 온전히 실행하기 위해서는 로컬 환경변수나 API 키가 포함된 `.env` 파일이 필요할 수 있습니다. 클론해서 사용하실 분은 레포지토리 주인에게 별도로 연락하여 `.env` 파일을 요청해 주시기 바랍니다.
 
-
-## Technical Architecture & Workflow
+## 개요
 ### Sequence Diagram
 ```mermaid
 sequenceDiagram
@@ -40,7 +35,6 @@ sequenceDiagram
     Tiler->>Tiler: Cosine Blending Merge
     Tiler-->>User: High-Res Enhanced Image
 ```
-
 
 ## 주요 기능
 - **저선량 파노라마 영상 처리**: 원본의 노이즈를 완벽하게 제어(Denoising) 및 대비 개선(CLAHE).
@@ -70,7 +64,7 @@ graph TD
 - **극심한 노출 부족**: 완전히 식별이 불가능한 수준의 원본에서는 구조물(치아 등)을 창조하거나 생성해내지 않습니다.
 - **의료적 책임**: 이 모델은 진단 보조(CAD) 툴이며, 전문의의 판단을 대체할 수 없습니다.
 
-## 설치 및 실행
+## 설치 및 실행 방법
 상세한 프로젝트 기획 및 실행 방법은 PROJECT_PLAN.md 파일을 참고하시기 바랍니다.
 
 ##  데모 및 실행 (Streamlit)
@@ -89,11 +83,11 @@ streamlit run app.py
 ##  결과물 예시 (Results)
 
 ### 1. 타일링 기반 전체 파노라마 복원
-![전체 파노라마 결과](docs/full_panorama_result.png)
+
 *저해상도 환경 시뮬레이션 및 복원 결과*
 
 ### 2. 세부 영역 비교 (Inference Comparison)
-![추론 결과 비교](docs/inference_comparison.png)
+
 *부분 크롭을 통한 노이즈 제거 및 경계선(치아, 뼈) 복원 차이 확인*
 
 ## 데이터셋 정보 (External Datasets)
