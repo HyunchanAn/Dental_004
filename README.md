@@ -1,9 +1,18 @@
+![Hugging Face](https://img.shields.io/badge/Models-HuggingFace-yellow?logo=huggingface)
 # Pano_clear
 
 ![Status](https://img.shields.io/badge/Status-v1.0%20Release-brightgreen) ![Python](https://img.shields.io/badge/Python-3.12%2B-blue) ![Backend](https://img.shields.io/badge/Backend-YOLOv8-red) ![UI](https://img.shields.io/badge/UI-Streamlit-orange) ![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD%20Pipeline-passing-brightgreen?logo=github)
 
 
 치과용 파노라마 영상의 화질 개선 및 초해상도 복원을 위한 AI 프로젝트입니다.
+
+
+## 📦 Model Weights (Hugging Face)
+이 모듈의 학습된 가중치 모델은 Hugging Face 저장소에 연동되어 있습니다. 
+아래 링크에서 다운로드할 수 있습니다:
+- [Hugging Face Repository (chemahc94/Dental-AI-Models)](https://huggingface.co/chemahc94/Dental-AI-Models/tree/main/Dental_004)
+
+다운로드한 가중치 파일은 이 레포지토리의 해당 모델 폴더에 배치하여 사용하세요.
 
 ## 설치 및 실행 방법
 
@@ -63,6 +72,14 @@ graph TD
 ## ️ Limitations
 - **극심한 노출 부족**: 완전히 식별이 불가능한 수준의 원본에서는 구조물(치아 등)을 창조하거나 생성해내지 않습니다.
 - **의료적 책임**: 이 모델은 진단 보조(CAD) 툴이며, 전문의의 판단을 대체할 수 없습니다.
+
+
+## 📦 Model Weights (Hugging Face)
+이 모듈의 학습된 가중치 모델은 Hugging Face 저장소에 연동되어 있습니다. 
+아래 링크에서 다운로드할 수 있습니다:
+- [Hugging Face Repository (chemahc94/Dental-AI-Models)](https://huggingface.co/chemahc94/Dental-AI-Models/tree/main/Dental_004)
+
+다운로드한 가중치 파일은 이 레포지토리의 해당 모델 폴더에 배치하여 사용하세요.
 
 ## 설치 및 실행 방법
 상세한 프로젝트 기획 및 실행 방법은 PROJECT_PLAN.md 파일을 참고하시기 바랍니다.
