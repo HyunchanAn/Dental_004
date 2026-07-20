@@ -21,3 +21,6 @@ data/processed/
 results/*.png
 !results/inference_comparison.png
 !results/full_panorama_result.png
+*.pt
+*.pth
+*.onnx
