@@ -37,7 +37,7 @@ jobs:
       run: ruff check src tests
 
     - name: Run Unit Tests
-      run: python -m PYTHONPATH=${{ github.workspace }} pytest Dental_000/tests_004 -v
+      run: python -m PYTHONPATH=${{ github.workspace }} pytest Dental_000/tests/tests_004 -v
 
   docker-build:
     runs-on: ubuntu-latest
