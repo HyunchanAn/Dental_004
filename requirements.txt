@@ -9,3 +9,4 @@ tqdm>=4.65.0
 matplotlib>=3.7.0
 asitop; platform_system == "Darwin"
 streamlit>=1.30.0
+git+https://github.com/HyunchanAn/Dental_Core.git@master
