@@ -2,7 +2,7 @@
 플랫폼 독립적인 디바이스 선택 유틸리티 모듈. (Issue #1)
 
 기존 코드베이스에서 Mac MPS에 종속적이거나 config 파일에 하드코딩된
-디바이스 선택 로직을 통일하여, CUDA > MPS > CPU 순으로 
+디바이스 선택 로직을 통일하여, CUDA > MPS > CPU 순으로
 최적의 디바이스를 자동 감지함.
 """
 
@@ -13,24 +13,24 @@ from typing import Dict
 def get_best_device() -> torch.device:
     """
     현재 시스템에서 사용 가능한 최적의 연산 디바이스를 자동 감지하여 반환함.
-    
+
     우선순위: CUDA (NVIDIA GPU) > MPS (Apple Silicon) > CPU
-    
+
     Returns:
         torch.device: 최적의 디바이스 객체
     """
     if torch.cuda.is_available():
-        return torch.device('cuda')
-    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-        return torch.device('mps')
+        return torch.device("cuda")
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")
     else:
-        return torch.device('cpu')
+        return torch.device("cpu")
 
 
 def get_device_info() -> Dict[str, str]:
     """
     현재 활성 디바이스에 대한 요약 정보를 반환함.
-    
+
     Returns:
         디바이스명, GPU 모델명(해당 시), 가용 VRAM 등을 포함하는 딕셔너리
     """
@@ -39,19 +39,22 @@ def get_device_info() -> Dict[str, str]:
         "device": str(device),
         "device_type": device.type,
     }
-    
-    if device.type == 'cuda':
+
+    if device.type == "cuda":
         info["gpu_name"] = torch.cuda.get_device_name(0)
-        info["vram_total_gb"] = f"{torch.cuda.get_device_properties(0).total_memory / (1024**3):.1f}"
+        info["vram_total_gb"] = (
+            f"{torch.cuda.get_device_properties(0).total_memory / (1024**3):.1f}"
+        )
         info["cuda_version"] = torch.version.cuda or "N/A"
-    elif device.type == 'mps':
+    elif device.type == "mps":
         info["gpu_name"] = "Apple Silicon (MPS)"
     else:
         info["gpu_name"] = "N/A (CPU mode)"
-    
+
     info["pytorch_version"] = torch.__version__
-    
+
     return info
+
 
 def get_onnx_execution_providers():
     """
@@ -59,15 +62,15 @@ def get_onnx_execution_providers():
     (Windows RTX 타겟: TensorRT/CUDA, Mac: CoreML, 그 외: CPU)
     """
     providers = []
-    
+
     if torch.cuda.is_available():
         # TensorRT가 설치되어 있다고 가정할 때 최상위 우선순위
-        providers.append('TensorrtExecutionProvider')
-        providers.append('CUDAExecutionProvider')
-        
-    if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        providers.append("TensorrtExecutionProvider")
+        providers.append("CUDAExecutionProvider")
+
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         # Mac 환경 (CoreML을 통한 가속)
-        providers.append('CoreMLExecutionProvider')
-        
-    providers.append('CPUExecutionProvider')
+        providers.append("CoreMLExecutionProvider")
+
+    providers.append("CPUExecutionProvider")
     return providers
