@@ -1,50 +1,15 @@
-name: CI Pipeline
+name: Centralized CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, "feature/**" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Checkout Central Tests
-      uses: actions/checkout@v4
-      with:
-        repository: HyunchanAn/Dental_000
-        path: Dental_000
-
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-        cache: "pip"
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # CI ?섍꼍?먯꽌 鍮좊Ⅸ ?ㅼ슫濡쒕뱶瑜??꾪빐 CPU ?꾩슜 PyTorch 諛??듭떖 ?쇱씠釉뚮윭由щ뱾???ㅼ튂?⑸땲??
-        pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
-        pip install -e .[dev]
-
-    - name: Run Ruff Linter
-      run: ruff check . || true
-
-    - name: Run Unit Tests
-      run: PYTHONPATH=${{ github.workspace }} pytest Dental_000/tests/tests_004 -v
-
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Build Docker image
-      run: |
-        docker build -t pano_clear:latest .
+  call-central-workflow:
+    uses: HyunchanAn/Dental_000/.github/workflows/reusable-ci.yml@main
+    with:
+      python_version: "3.10"
+      install_opencv: true
+      test_command: "PYTHONPATH=${{ github.workspace }} pytest Dental_000/tests/tests_004 -v"
