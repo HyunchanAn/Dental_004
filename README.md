@@ -189,3 +189,10 @@ streamlit run app.py
 [3] K. Panetta, R. Rajendran, A. Ramesh, S. P. Rao, and S. Agaian, "Tufts Dental Database: A Multimodal Panoramic X-ray Dataset for Benchmarking Diagnostic Systems," *IEEE Journal of Biomedical and Health Informatics*, 2021.
 
 [4] I. Hamamci et al., "DENTEX Challenge Dataset," Hugging Face, 2023. [Dataset URL](https://huggingface.co/datasets/ibrahimhamamci/DENTEX)
+
+## 연구용 실행 주의사항
+- 기본 실행 주소: 127.0.0.1 (로컬 전용)
+- 외부 공개/상용 배포 금지
+- API 키·토큰은 환경변수로만 관리
+- 오픈 데이터셋 외 민감 의료데이터 사용 금지
+- 외부 접근이 필요하면 ALLOW_EXTERNAL_ACCESS=true 로만 명시적 허용
