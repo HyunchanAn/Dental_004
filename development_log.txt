@@ -70,8 +70,8 @@
 - [x] 프로젝트 구조 정리 및 라이브러리화 (`src` 레이아웃, `pyproject.toml`)
 - [x] 도커라이징 (`Dockerfile`, `.dockerignore`)
 - [x] 코드 품질 환경 표준화 (`.pre-commit-config.yaml`)
-- [ ] 커뮤니티 및 협업 준비 (`CONTRIBUTING.md`, PR/Issue 템플릿)
-- [ ] 문서 고도화 (`ARCHITECTURE.md`, `DECISIONS.md`, `MODEL_CARD.md`)
+- [x] 커뮤니티 및 협업 준비 (`CONTRIBUTING.md`, PR/Issue 템플릿)
+- [x] 문서 고도화 (`ARCHITECTURE.md`, `DECISIONS.md`, `MODEL_CARD.md`)
 
 ##### 2026-05-26 #####
 
@@ -258,3 +258,8 @@
 - 모델 성능 벤치마크 평가(evaluate_metrics.py) 수행 결과 PSNR ~20dB 및 낮은 SSIM 기록 (환각 발생 우려 확인).
 - `reports_archive/260710_0900_SwinIR_Pano_SR_E2E_Validation_Report.md` 보고서 작성 완료.
 - CI/CD 워크플로우를 Docker 빌드까지 검증하도록 업데이트함.
+
+
+##### 2026-10-21 #####
+- 이슈 #10 해결: 스톡 워터마크가 포함된 샘플 이미지(`samples/ex_pano04.jpeg`)를 Git 추적에서 제거하고, `samples/README.md`를 신설하여 비상업적 UI 프리뷰 용도를 명시함. 아울러 `README.md`에 Tufts Dental Database(기관 DUA 필요, 재배포 불가), Kaggle Children's Dental Caries(`CC0 1.0`), DENTEX(`CC BY-NC-SA 4.0`) 라이선스 및 접근 조건을 명확히 구분하여 문서화함.
+- 이슈 #11 해결: `README.md` 내 정량 지표 해석 시 `SSIM 0.8413` 및 `PSNR 26.74 dB` 수치가 문헌 권고 범위(`SSIM 0.85 ~ 0.95`)보다 소폭 낮음을 객관적으로 서술하고, 진단용 미세 구조 합성이 아닌 대비·노이즈 전처리 보조(Contrast/noise pre-enhancement) 용도임을 명시함. 또한 `development_log.txt` 내 완료된 문서화 체크리스트 2건(`CONTRIBUTING.md`, `ARCHITECTURE.md/DECISIONS.md/MODEL_CARD.md`)을 `[x]`로 현행화함.
