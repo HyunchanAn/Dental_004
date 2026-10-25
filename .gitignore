@@ -32,3 +32,8 @@ results/*.png
 *.onnx
 __pycache__/
 .venv/
+
+# Local web-collected sample images (excluded from public Git tracking)
+samples/*.jpeg
+samples/*.jpg
+samples/*.png
