@@ -218,3 +218,4 @@
 
 2026-10-25
 - 최종 결과 보고서(`results/FINAL_REPORT.md`) 공식 종결(`[CLOSED]` / `[PASS]` 완결) 명시 및 개발일지(`development_log.txt`) 연대기순 표준 양식 통일 완료.
+- 웹 수집 샘플 파노라마 이미지(`samples/ex_pano01~03, 05.jpeg`)를 로컬 디스크에 보존하면서 Git 추적에서 전면 제외(`git rm --cached` 및 `.gitignore` 등록) 완료.
